@@ -2,18 +2,41 @@
 
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchCreators } from '@/store/slices/creatorSlice';
+import {
+  fetchCreators,
+  subscribeToCreator,
+  unsubscribeFromCreator,
+} from '@/store/slices/creatorSlice';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Heart, HeartOff } from 'lucide-react';
 
 export default function CreatorsPage(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { creators, loading, error, pagination } = useAppSelector((state) => state.creator);
+  const { creators, loading, error, pagination, subscribing } = useAppSelector(
+    (state) => state.creator
+  );
+  const { user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchCreators({}));
   }, [dispatch]);
+
+  const handleSubscribeToggle = async (
+    creatorId: string,
+    isCurrentlySubscribed: boolean | undefined
+  ) => {
+    try {
+      if (isCurrentlySubscribed) {
+        await dispatch(unsubscribeFromCreator(creatorId)).unwrap();
+      } else {
+        await dispatch(subscribeToCreator(creatorId)).unwrap();
+      }
+    } catch (error) {
+      console.error('구독 토글 실패:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -122,6 +145,27 @@ export default function CreatorsPage(): JSX.Element {
                   <Button size="sm" variant="outline">
                     상세
                   </Button>
+                  {/* 구독 버튼: 본인 크리에이터가 아닐 때만 표시 */}
+                  {user && creator.userId !== user.id && (
+                    <Button
+                      size="sm"
+                      variant={creator.isSubscribed ? 'default' : 'outline'}
+                      onClick={() => handleSubscribeToggle(creator.id, creator.isSubscribed)}
+                      disabled={subscribing}
+                    >
+                      {creator.isSubscribed ? (
+                        <>
+                          <Heart className="w-4 h-4 mr-1 fill-current" />
+                          구독중
+                        </>
+                      ) : (
+                        <>
+                          <HeartOff className="w-4 h-4 mr-1" />
+                          구독
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

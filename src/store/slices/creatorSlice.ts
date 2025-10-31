@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { creatorService } from '@/services/creatorService';
 
 interface Creator {
   id: string;
@@ -11,6 +12,7 @@ interface Creator {
   createdAt: string;
   updatedAt: string;
   userId?: string;
+  isSubscribed?: boolean;
 }
 
 interface CreatorFilters {
@@ -34,6 +36,8 @@ interface CreatorState {
   error: string | null;
   pagination: PaginationState;
   filters: CreatorFilters;
+  subscribing: boolean;
+  subscribeError: string | null;
 }
 
 const initialState: CreatorState = {
@@ -48,6 +52,8 @@ const initialState: CreatorState = {
     itemsPerPage: 10,
   },
   filters: {},
+  subscribing: false,
+  subscribeError: null,
 };
 
 export const fetchCreators = createAsyncThunk<
@@ -92,6 +98,42 @@ export const verifyCreator = createAsyncThunk<
   }
 );
 
+// ==================== 구독 관련 액션 ====================
+
+/**
+ * 크리에이터 구독
+ */
+export const subscribeToCreator = createAsyncThunk<
+  string, // creatorId 반환
+  string, // creatorId 파라미터
+  { rejectValue: string }
+>('creator/subscribe', async (creatorId, { rejectWithValue }) => {
+  try {
+    await creatorService.subscribeToCreator(creatorId);
+    return creatorId;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '구독에 실패했습니다.';
+    return rejectWithValue(message);
+  }
+});
+
+/**
+ * 크리에이터 구독 취소
+ */
+export const unsubscribeFromCreator = createAsyncThunk<
+  string, // creatorId 반환
+  string, // creatorId 파라미터
+  { rejectValue: string }
+>('creator/unsubscribe', async (creatorId, { rejectWithValue }) => {
+  try {
+    await creatorService.unsubscribeFromCreator(creatorId);
+    return creatorId;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '구독 취소에 실패했습니다.';
+    return rejectWithValue(message);
+  }
+});
+
 const creatorSlice = createSlice({
   name: 'creator',
   initialState,
@@ -135,6 +177,38 @@ const creatorSlice = createSlice({
       .addCase(verifyCreator.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      // 구독 액션 처리
+      .addCase(subscribeToCreator.pending, (state) => {
+        state.subscribing = true;
+        state.subscribeError = null;
+      })
+      .addCase(subscribeToCreator.fulfilled, (state, action) => {
+        state.subscribing = false;
+        const creator = state.creators.find((c) => c.id === action.payload);
+        if (creator) {
+          creator.isSubscribed = true;
+        }
+      })
+      .addCase(subscribeToCreator.rejected, (state, action) => {
+        state.subscribing = false;
+        state.subscribeError = action.payload as string;
+      })
+      // 구독 취소 액션 처리
+      .addCase(unsubscribeFromCreator.pending, (state) => {
+        state.subscribing = true;
+        state.subscribeError = null;
+      })
+      .addCase(unsubscribeFromCreator.fulfilled, (state, action) => {
+        state.subscribing = false;
+        const creator = state.creators.find((c) => c.id === action.payload);
+        if (creator) {
+          creator.isSubscribed = false;
+        }
+      })
+      .addCase(unsubscribeFromCreator.rejected, (state, action) => {
+        state.subscribing = false;
+        state.subscribeError = action.payload as string;
       });
   },
 });

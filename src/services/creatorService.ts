@@ -1,4 +1,4 @@
-import { httpClient } from '@/lib/httpClient';
+import { pickApi } from '@/lib/httpClient';
 
 export interface Creator {
   id: string;
@@ -11,6 +11,7 @@ export interface Creator {
   createdAt: string;
   updatedAt: string;
   userId?: string;
+  isSubscribed?: boolean;
 }
 
 export interface CreateCreatorDto {
@@ -54,41 +55,78 @@ export interface SearchParams extends CreatorFilters {
 
 class CreatorService {
   async getCreators(params: SearchParams = {}): Promise<PaginatedResponse<Creator>> {
-    const response = await httpClient.pickGet<PaginatedResponse<Creator>>('/api/creators', params);
+    const response = await pickApi.get<PaginatedResponse<Creator>>('/api/creators', { params });
     return response.data;
   }
 
   async getCreatorById(id: string): Promise<Creator> {
-    const response = await httpClient.pickGet<Creator>(`/api/creators/${id}`);
+    const response = await pickApi.get<Creator>(`/api/creators/${id}`);
     return response.data;
   }
 
   async createCreator(creatorData: CreateCreatorDto): Promise<void> {
-    await httpClient.pickPost<void>('/api/creators', creatorData);
+    await pickApi.post<void>('/api/creators', creatorData);
   }
 
   async updateCreator(id: string, creatorData: UpdateCreatorDto): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/creators/${id}`, creatorData);
+    await pickApi.patch<void>(`/api/creators/${id}`, creatorData);
   }
 
   async deleteCreator(id: string): Promise<void> {
-    await httpClient.pickDelete<void>(`/api/creators/${id}`);
+    await pickApi.delete<void>(`/api/creators/${id}`);
   }
 
   async verifyCreator(id: string): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/creators/${id}/verify`);
+    await pickApi.patch<void>(`/api/creators/${id}/verify`);
   }
 
   async unverifyCreator(id: string): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/creators/${id}/unverify`);
+    await pickApi.patch<void>(`/api/creators/${id}/unverify`);
   }
 
   async activateCreator(id: string): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/creators/${id}/activate`);
+    await pickApi.patch<void>(`/api/creators/${id}/activate`);
   }
 
   async deactivateCreator(id: string): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/creators/${id}/deactivate`);
+    await pickApi.patch<void>(`/api/creators/${id}/deactivate`);
+  }
+
+  // ==================== 구독 관련 메서드 ====================
+
+  /**
+   * 크리에이터 구독
+   */
+  async subscribeToCreator(creatorId: string): Promise<void> {
+    await pickApi.post<void>('/api/subscriptions', {
+      creatorId,
+      notificationEnabled: true,
+    });
+  }
+
+  /**
+   * 크리에이터 구독 취소
+   */
+  async unsubscribeFromCreator(creatorId: string): Promise<void> {
+    await pickApi.delete<void>(`/api/subscriptions/${creatorId}`);
+  }
+
+  /**
+   * 구독 여부 확인
+   */
+  async checkSubscription(creatorId: string): Promise<boolean> {
+    const response = await pickApi.get<{ isSubscribed: boolean }>(
+      `/api/subscriptions/${creatorId}/check`
+    );
+    return response.data.isSubscribed;
+  }
+
+  /**
+   * 내가 구독한 크리에이터 목록 조회
+   */
+  async getMySubscriptions(): Promise<string[]> {
+    const response = await pickApi.get<string[]>('/api/subscriptions');
+    return response.data;
   }
 }
 
