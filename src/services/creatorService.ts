@@ -98,7 +98,7 @@ class CreatorService {
    * 크리에이터 구독
    */
   async subscribeToCreator(creatorId: string): Promise<void> {
-    await pickApi.post<void>('/api/subscriptions', {
+    await pickApi.post<void>('/subscriptions', {
       creatorId,
       notificationEnabled: true,
     });
@@ -108,7 +108,7 @@ class CreatorService {
    * 크리에이터 구독 취소
    */
   async unsubscribeFromCreator(creatorId: string): Promise<void> {
-    await pickApi.delete<void>(`/api/subscriptions/${creatorId}`);
+    await pickApi.delete<void>(`/subscriptions/${creatorId}`);
   }
 
   /**
@@ -116,7 +116,7 @@ class CreatorService {
    */
   async checkSubscription(creatorId: string): Promise<boolean> {
     const response = await pickApi.get<{ isSubscribed: boolean }>(
-      `/api/subscriptions/${creatorId}/check`
+      `/subscriptions/${creatorId}/check`
     );
     return response.data.isSubscribed;
   }
@@ -125,7 +125,7 @@ class CreatorService {
    * 내가 구독한 크리에이터 목록 조회
    */
   async getMySubscriptions(): Promise<string[]> {
-    const response = await pickApi.get<string[]>('/api/subscriptions');
+    const response = await pickApi.get<string[]>('/subscriptions');
     return response.data;
   }
 }
