@@ -1,4 +1,5 @@
-import { httpClient } from '@/lib/httpClient';
+import { authApi, tokenManager } from '@/lib/httpClient';
+import type { UserProfile } from '@krgeobuk/user/interfaces';
 
 export interface User {
   id: string;
@@ -18,63 +19,84 @@ export interface AuthResponse {
   token: string;
 }
 
-class AuthService {
+export interface InitializeResponse {
+  accessToken: string;
+  user: UserProfile;
+  isLogin: boolean;
+}
+
+/**
+ * 인증 관련 Service
+ *
+ * 사용자 인증, 로그아웃, 토큰 관리 등을 담당
+ */
+export class AuthService {
+  /**
+   * 앱 초기화 - RefreshToken으로 AccessToken + 사용자 정보 조회
+   */
+  async initialize(): Promise<InitializeResponse> {
+    const response = await authApi.post<{ accessToken: string; user: UserProfile }>(
+      '/api/auth/initialize'
+    );
+
+    const { accessToken, user } = response.data;
+    const { isLogin } = response;
+
+    // AccessToken을 TokenManager에 저장
+    tokenManager.setAccessToken(accessToken);
+
+    return { accessToken, user, isLogin };
+  }
+
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await httpClient.authPost<AuthResponse>('/api/auth/login', credentials);
+    const response = await authApi.post<AuthResponse>('/api/auth/login', credentials);
     return response.data;
   }
 
   async logout(): Promise<void> {
-    await httpClient.authPost<void>('/api/auth/logout');
-    localStorage.removeItem('token');
+    await authApi.post<void>('/api/auth/logout');
+    tokenManager.clearAccessToken();
   }
 
   async getCurrentUser(): Promise<User> {
-    const response = await httpClient.authGet<User>('/api/auth/me');
+    const response = await authApi.get<User>('/api/auth/me');
     return response.data;
   }
 
   async refreshToken(): Promise<{ token: string }> {
-    const response = await httpClient.authPost<{ token: string }>('/api/auth/refresh');
+    const response = await authApi.post<{ token: string }>('/api/auth/refresh');
     return response.data;
   }
 
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    await httpClient.authPatch<void>('/api/auth/change-password', {
+    await authApi.patch<void>('/api/auth/change-password', {
       currentPassword,
       newPassword,
     });
   }
 
   async updateProfile(userData: { name?: string; email?: string }): Promise<void> {
-    await httpClient.authPatch<void>('/api/auth/profile', userData);
+    await authApi.patch<void>('/api/auth/profile', userData);
   }
 
   isTokenValid(): boolean {
-    const token = localStorage.getItem('token');
+    const token = tokenManager.getAccessToken();
     if (!token) return false;
-
-    try {
-      const parts = token.split('.');
-      if (parts.length !== 3) return false;
-      const payload = JSON.parse(atob(parts[1]!));
-      return payload.exp * 1000 > Date.now();
-    } catch {
-      return false;
-    }
+    return tokenManager.isValidToken(token);
   }
 
   getStoredToken(): string | null {
-    return localStorage.getItem('token');
+    return tokenManager.getAccessToken();
   }
 
   setToken(token: string): void {
-    localStorage.setItem('token', token);
+    tokenManager.setAccessToken(token);
   }
 
   removeToken(): void {
-    localStorage.removeItem('token');
+    tokenManager.clearAccessToken();
   }
 }
 
+// 싱글톤 인스턴스
 export const authService = new AuthService();
