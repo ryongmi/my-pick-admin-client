@@ -11,9 +11,9 @@ interface LayoutProps {
 
 export function Layout({ children, showSidebar = true }: LayoutProps): JSX.Element {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background">
       <Header />
-      <div className="flex">
+      <div className="flex flex-1 overflow-hidden">
         {showSidebar && <Sidebar />}
         <main className="flex-1 overflow-auto">
           {children}
