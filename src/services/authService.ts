@@ -36,7 +36,7 @@ export class AuthService {
    */
   async initialize(): Promise<InitializeResponse> {
     const response = await authApi.post<{ accessToken: string; user: UserProfile }>(
-      '/api/auth/initialize'
+      '/auth/initialize'
     );
 
     const { accessToken, user } = response.data;
@@ -49,34 +49,34 @@ export class AuthService {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await authApi.post<AuthResponse>('/api/auth/login', credentials);
+    const response = await authApi.post<AuthResponse>('/auth/login', credentials);
     return response.data;
   }
 
   async logout(): Promise<void> {
-    await authApi.post<void>('/api/auth/logout');
+    await authApi.post<void>('/auth/logout');
     tokenManager.clearAccessToken();
   }
 
   async getCurrentUser(): Promise<User> {
-    const response = await authApi.get<User>('/api/auth/me');
+    const response = await authApi.get<User>('/auth/me');
     return response.data;
   }
 
   async refreshToken(): Promise<{ token: string }> {
-    const response = await authApi.post<{ token: string }>('/api/auth/refresh');
+    const response = await authApi.post<{ token: string }>('/auth/refresh');
     return response.data;
   }
 
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    await authApi.patch<void>('/api/auth/change-password', {
+    await authApi.patch<void>('/auth/change-password', {
       currentPassword,
       newPassword,
     });
   }
 
   async updateProfile(userData: { name?: string; email?: string }): Promise<void> {
-    await authApi.patch<void>('/api/auth/profile', userData);
+    await authApi.patch<void>('/auth/profile', userData);
   }
 
   isTokenValid(): boolean {

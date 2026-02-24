@@ -1,4 +1,4 @@
-import { httpClient } from '@/lib/httpClient';
+import { pickApi } from '@/lib/httpClient';
 
 export interface Platform {
   id: string;
@@ -33,37 +33,37 @@ export interface UpdatePlatformDto {
 
 class PlatformService {
   async getPlatforms(): Promise<Platform[]> {
-    const response = await httpClient.pickGet<Platform[]>('/api/platforms');
+    const response = await pickApi.get<Platform[]>('/api/platforms');
     return response.data;
   }
 
   async getPlatformById(id: string): Promise<Platform> {
-    const response = await httpClient.pickGet<Platform>(`/api/platforms/${id}`);
+    const response = await pickApi.get<Platform>(`/api/platforms/${id}`);
     return response.data;
   }
 
   async createPlatform(platformData: CreatePlatformDto): Promise<void> {
-    await httpClient.pickPost<void>('/api/platforms', platformData);
+    await pickApi.post<void>('/api/platforms', platformData);
   }
 
   async updatePlatform(id: string, platformData: UpdatePlatformDto): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/platforms/${id}`, platformData);
+    await pickApi.patch<void>(`/api/platforms/${id}`, platformData);
   }
 
   async deletePlatform(id: string): Promise<void> {
-    await httpClient.pickDelete<void>(`/api/platforms/${id}`);
+    await pickApi.delete<void>(`/api/platforms/${id}`);
   }
 
   async activatePlatform(id: string): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/platforms/${id}/activate`);
+    await pickApi.patch<void>(`/api/platforms/${id}/activate`);
   }
 
   async deactivatePlatform(id: string): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/platforms/${id}/deactivate`);
+    await pickApi.patch<void>(`/api/platforms/${id}/deactivate`);
   }
 
   async testPlatformConnection(id: string): Promise<{ success: boolean; message: string }> {
-    const response = await httpClient.pickGet<{ success: boolean; message: string }>(`/api/platforms/${id}/test`);
+    const response = await pickApi.get<{ success: boolean; message: string }>(`/api/platforms/${id}/test`);
     return response.data;
   }
 }

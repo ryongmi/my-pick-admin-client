@@ -1,4 +1,4 @@
-import { httpClient } from '@/lib/httpClient';
+import { pickApi } from '@/lib/httpClient';
 
 export interface Content {
   id: string;
@@ -62,45 +62,45 @@ export interface SearchParams extends ContentFilters {
 
 class ContentService {
   async getContents(params: SearchParams = {}): Promise<PaginatedResponse<Content>> {
-    const response = await httpClient.pickGet<PaginatedResponse<Content>>('/api/contents', params);
+    const response = await pickApi.get<PaginatedResponse<Content>>('/api/contents', { params });
     return response.data;
   }
 
   async getContentById(id: string): Promise<Content> {
-    const response = await httpClient.pickGet<Content>(`/api/contents/${id}`);
+    const response = await pickApi.get<Content>(`/api/contents/${id}`);
     return response.data;
   }
 
   async createContent(contentData: CreateContentDto): Promise<void> {
-    await httpClient.pickPost<void>('/api/contents', contentData);
+    await pickApi.post<void>('/api/contents', contentData);
   }
 
   async updateContent(id: string, contentData: UpdateContentDto): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/contents/${id}`, contentData);
+    await pickApi.patch<void>(`/api/contents/${id}`, contentData);
   }
 
   async deleteContent(id: string): Promise<void> {
-    await httpClient.pickDelete<void>(`/api/contents/${id}`);
+    await pickApi.delete<void>(`/api/contents/${id}`);
   }
 
   async approveContent(id: string): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/contents/${id}/approve`);
+    await pickApi.patch<void>(`/api/contents/${id}/approve`);
   }
 
   async rejectContent(id: string): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/contents/${id}/reject`);
+    await pickApi.patch<void>(`/api/contents/${id}/reject`);
   }
 
   async activateContent(id: string): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/contents/${id}/activate`);
+    await pickApi.patch<void>(`/api/contents/${id}/activate`);
   }
 
   async deactivateContent(id: string): Promise<void> {
-    await httpClient.pickPatch<void>(`/api/contents/${id}/deactivate`);
+    await pickApi.patch<void>(`/api/contents/${id}/deactivate`);
   }
 
   async getPendingContents(params: SearchParams = {}): Promise<PaginatedResponse<Content>> {
-    const response = await httpClient.pickGet<PaginatedResponse<Content>>('/api/contents/pending', params);
+    const response = await pickApi.get<PaginatedResponse<Content>>('/api/contents/pending', { params });
     return response.data;
   }
 }

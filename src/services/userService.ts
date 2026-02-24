@@ -1,4 +1,4 @@
-import { httpClient } from '@/lib/httpClient';
+import { authApi } from '@/lib/httpClient';
 
 export interface User {
   id: string;
@@ -45,33 +45,33 @@ export interface SearchParams extends UserFilters {
 
 class UserService {
   async getUsers(params: SearchParams = {}): Promise<PaginatedResponse<User>> {
-    const response = await httpClient.authGet<PaginatedResponse<User>>('/api/users', params);
+    const response = await authApi.get<PaginatedResponse<User>>('/api/users', { params });
     return response.data;
   }
 
   async getUserById(id: string): Promise<User> {
-    const response = await httpClient.authGet<User>(`/api/users/${id}`);
+    const response = await authApi.get<User>(`/api/users/${id}`);
     return response.data;
   }
 
   async createUser(userData: CreateUserDto): Promise<void> {
-    await httpClient.authPost<void>('/api/users', userData);
+    await authApi.post<void>('/api/users', userData);
   }
 
   async updateUser(id: string, userData: UpdateUserDto): Promise<void> {
-    await httpClient.authPatch<void>(`/api/users/${id}`, userData);
+    await authApi.patch<void>(`/api/users/${id}`, userData);
   }
 
   async deleteUser(id: string): Promise<void> {
-    await httpClient.authDelete<void>(`/api/users/${id}`);
+    await authApi.delete<void>(`/api/users/${id}`);
   }
 
   async activateUser(id: string): Promise<void> {
-    await httpClient.authPatch<void>(`/api/users/${id}/activate`);
+    await authApi.patch<void>(`/api/users/${id}/activate`);
   }
 
   async deactivateUser(id: string): Promise<void> {
-    await httpClient.authPatch<void>(`/api/users/${id}/deactivate`);
+    await authApi.patch<void>(`/api/users/${id}/deactivate`);
   }
 }
 

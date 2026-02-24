@@ -1,133 +1,60 @@
 import { pickApi } from '@/lib/httpClient';
+import type { CreatorSearchParams, CreatorListResponse, CreatorDetail } from '@/types/creator';
 
-export interface Creator {
-  id: string;
-  name: string;
-  description?: string;
-  avatar?: string;
-  isVerified: boolean;
-  isActive: boolean;
-  platforms: string[];
-  createdAt: string;
-  updatedAt: string;
-  userId?: string;
-  isSubscribed?: boolean;
-}
-
-export interface CreateCreatorDto {
-  name: string;
-  description?: string;
-  avatar?: string;
-  platforms: string[];
-  userId?: string;
-}
-
-export interface UpdateCreatorDto {
-  name?: string;
-  description?: string;
-  avatar?: string;
-  platforms?: string[];
-  isActive?: boolean;
-}
-
-export interface CreatorFilters {
-  search?: string;
-  platform?: string;
-  isVerified?: boolean;
-  isActive?: boolean;
-}
-
-export interface PaginatedResponse<T> {
-  items: T[];
-  pageInfo: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-  };
-}
-
-export interface SearchParams extends CreatorFilters {
-  page?: number;
-  limit?: number;
-  [key: string]: unknown;
-}
-
+/**
+ * 크리에이터 관련 Service
+ *
+ * 크리에이터 조회, 검색 등을 담당
+ */
 class CreatorService {
-  async getCreators(params: SearchParams = {}): Promise<PaginatedResponse<Creator>> {
-    const response = await pickApi.get<PaginatedResponse<Creator>>('/api/creators', { params });
-    return response.data;
-  }
-
-  async getCreatorById(id: string): Promise<Creator> {
-    const response = await pickApi.get<Creator>(`/api/creators/${id}`);
-    return response.data;
-  }
-
-  async createCreator(creatorData: CreateCreatorDto): Promise<void> {
-    await pickApi.post<void>('/api/creators', creatorData);
-  }
-
-  async updateCreator(id: string, creatorData: UpdateCreatorDto): Promise<void> {
-    await pickApi.patch<void>(`/api/creators/${id}`, creatorData);
-  }
-
-  async deleteCreator(id: string): Promise<void> {
-    await pickApi.delete<void>(`/api/creators/${id}`);
-  }
-
-  async verifyCreator(id: string): Promise<void> {
-    await pickApi.patch<void>(`/api/creators/${id}/verify`);
-  }
-
-  async unverifyCreator(id: string): Promise<void> {
-    await pickApi.patch<void>(`/api/creators/${id}/unverify`);
-  }
-
-  async activateCreator(id: string): Promise<void> {
-    await pickApi.patch<void>(`/api/creators/${id}/activate`);
-  }
-
-  async deactivateCreator(id: string): Promise<void> {
-    await pickApi.patch<void>(`/api/creators/${id}/deactivate`);
-  }
-
-  // ==================== 구독 관련 메서드 ====================
-
   /**
-   * 크리에이터 구독
+   * 크리에이터 목록 조회 (페이지네이션, 필터링, 정렬 지원)
+   * my-pick-server API: GET /creators
    */
-  async subscribeToCreator(creatorId: string): Promise<void> {
-    await pickApi.post<void>('/subscriptions', {
-      creatorId,
-      notificationEnabled: true,
+  async getCreators(params: CreatorSearchParams = {}): Promise<CreatorListResponse> {
+    // 빈 값이나 undefined를 제외한 쿼리 파라미터 구성
+    const queryParams: Record<string, string | number | boolean> = {
+      page: params.page || 1,
+      limit: params.limit || 30,
+    };
+
+    // name이 빈 문자열이 아닐 때만 포함
+    if (params.name && params.name.trim() !== '') {
+      queryParams.name = params.name.trim();
+    }
+
+    // platform이 정의되어 있을 때만 포함
+    if (params.platform) {
+      queryParams.platform = params.platform;
+    }
+
+    // orderBy가 정의되어 있을 때만 포함
+    if (params.orderBy) {
+      queryParams.orderBy = params.orderBy;
+    }
+
+    // activeOnly가 명시적으로 true일 때만 포함
+    if (params.activeOnly === true) {
+      queryParams.activeOnly = true;
+    }
+
+    const response = await pickApi.get<CreatorListResponse>('/creators', {
+      params: queryParams,
     });
-  }
-
-  /**
-   * 크리에이터 구독 취소
-   */
-  async unsubscribeFromCreator(creatorId: string): Promise<void> {
-    await pickApi.delete<void>(`/subscriptions/${creatorId}`);
-  }
-
-  /**
-   * 구독 여부 확인
-   */
-  async checkSubscription(creatorId: string): Promise<boolean> {
-    const response = await pickApi.get<{ isSubscribed: boolean }>(
-      `/subscriptions/${creatorId}/check`
-    );
-    return response.data.isSubscribed;
-  }
-
-  /**
-   * 내가 구독한 크리에이터 목록 조회
-   */
-  async getMySubscriptions(): Promise<string[]> {
-    const response = await pickApi.get<string[]>('/subscriptions');
     return response.data;
   }
+
+  /**
+   * 크리에이터 상세 조회
+   * my-pick-server API: GET /creators/:id
+   */
+  async getCreatorById(id: string): Promise<CreatorDetail> {
+    const response = await pickApi.get<CreatorDetail>(`/creators/${id}`);
+    return response.data;
+  }
+
+  // getCreatorPlatforms는 제거됨 - GET /creators/:id가 이미 platforms 포함
 }
 
+// 싱글톤 인스턴스
 export const creatorService = new CreatorService();

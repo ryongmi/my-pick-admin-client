@@ -1,9 +1,10 @@
 'use client';
 
+import Image from 'next/image';
 import { useAppSelector } from '@/store/hooks';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -17,6 +18,18 @@ export function Header(): JSX.Element {
 
   const handleLogout = (): void => {
     // TODO: 로그아웃 구현
+  };
+
+  // 안전한 이미지 URL 확인
+  const isValidImageUrl = (url?: string): boolean => {
+    if (!url) return false;
+    try {
+      new URL(url);
+      // 신뢰할 수 있는 도메인 체크 (필요시 추가)
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   return (
@@ -33,9 +46,21 @@ export function Header(): JSX.Element {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-primary-foreground" />
-                </div>
+                {user?.profileImageUrl && isValidImageUrl(user.profileImageUrl) ? (
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                    <Image
+                      src={user.profileImageUrl}
+                      alt={user.name || 'User'}
+                      width={32}
+                      height={32}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                )}
                 <div className="hidden md:block text-left">
                   <p className="text-sm font-medium">{user?.name || 'Admin'}</p>
                   <p className="text-xs text-muted-foreground">

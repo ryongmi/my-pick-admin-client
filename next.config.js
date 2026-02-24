@@ -26,6 +26,17 @@ const nextConfig = {
         hostname: 'abs.twimg.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8000',
+        pathname: '/api/proxy/image',
+      },
     ],
   },
   env: {

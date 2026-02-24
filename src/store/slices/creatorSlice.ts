@@ -1,79 +1,68 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { creatorService } from '@/services/creatorService';
-
-interface Creator {
-  id: string;
-  name: string;
-  description?: string;
-  avatar?: string;
-  isVerified: boolean;
-  isActive: boolean;
-  platforms: string[];
-  createdAt: string;
-  updatedAt: string;
-  userId?: string;
-  isSubscribed?: boolean;
-}
-
-interface CreatorFilters {
-  search?: string;
-  platform?: string;
-  isVerified?: boolean;
-  isActive?: boolean;
-}
-
-interface PaginationState {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
-}
+import type { Creator, CreatorSearchParams, CreatorDetail } from '@/types/creator';
+import type { LimitType } from '@krgeobuk/core/enum';
 
 interface CreatorState {
   creators: Creator[];
-  selectedCreator: Creator | null;
+  selectedCreator: CreatorDetail | null;
   loading: boolean;
+  detailLoading: boolean;
   error: string | null;
-  pagination: PaginationState;
-  filters: CreatorFilters;
-  subscribing: boolean;
-  subscribeError: string | null;
+  pageInfo: {
+    totalItems: number;
+    page: number;
+    limit: LimitType;
+    totalPages: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+  };
+  filters: CreatorSearchParams;
 }
 
 const initialState: CreatorState = {
   creators: [],
   selectedCreator: null,
   loading: false,
+  detailLoading: false,
   error: null,
-  pagination: {
-    currentPage: 1,
-    totalPages: 1,
+  pageInfo: {
     totalItems: 0,
-    itemsPerPage: 10,
+    page: 1,
+    limit: 30,
+    totalPages: 0,
+    hasPreviousPage: false,
+    hasNextPage: false,
   },
-  filters: {},
-  subscribing: false,
-  subscribeError: null,
+  filters: {
+    page: 1,
+    limit: 30,
+  },
 };
 
-export const fetchCreators = createAsyncThunk<
-  { creators: Creator[]; pagination: PaginationState },
-  { page?: number; filters?: CreatorFilters },
+// 크리에이터 목록 조회
+export const fetchCreators = createAsyncThunk(
+  'creator/fetchCreators',
+  async (params: CreatorSearchParams | undefined, { rejectWithValue }) => {
+    try {
+      return await creatorService.getCreators(params);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '크리에이터 목록 조회 실패';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+// 크리에이터 상세 조회
+export const fetchCreatorById = createAsyncThunk<
+  CreatorDetail,
+  string,
   { rejectValue: string }
 >(
-  'creator/fetchCreators',
-  async ({ page = 1, filters: _filters = {} }, { rejectWithValue }) => {
+  'creator/fetchCreatorById',
+  async (id, { rejectWithValue }) => {
     try {
-      // TODO: API 호출 구현
-      return {
-        creators: [],
-        pagination: {
-          currentPage: page,
-          totalPages: 1,
-          totalItems: 0,
-          itemsPerPage: 10,
-        },
-      };
+      return await creatorService.getCreatorById(id);
     } catch (error) {
       const message = error instanceof Error ? error.message : '크리에이터 조회 실패';
       return rejectWithValue(message);
@@ -81,72 +70,20 @@ export const fetchCreators = createAsyncThunk<
   }
 );
 
-export const verifyCreator = createAsyncThunk<
-  void,
-  string,
-  { rejectValue: string }
->(
-  'creator/verifyCreator',
-  async (id, { rejectWithValue, dispatch }) => {
-    try {
-      // TODO: API 호출 구현
-      dispatch(fetchCreators({}));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '크리에이터 인증 실패';
-      return rejectWithValue(message);
-    }
-  }
-);
-
-// ==================== 구독 관련 액션 ====================
-
-/**
- * 크리에이터 구독
- */
-export const subscribeToCreator = createAsyncThunk<
-  string, // creatorId 반환
-  string, // creatorId 파라미터
-  { rejectValue: string }
->('creator/subscribe', async (creatorId, { rejectWithValue }) => {
-  try {
-    await creatorService.subscribeToCreator(creatorId);
-    return creatorId;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : '구독에 실패했습니다.';
-    return rejectWithValue(message);
-  }
-});
-
-/**
- * 크리에이터 구독 취소
- */
-export const unsubscribeFromCreator = createAsyncThunk<
-  string, // creatorId 반환
-  string, // creatorId 파라미터
-  { rejectValue: string }
->('creator/unsubscribe', async (creatorId, { rejectWithValue }) => {
-  try {
-    await creatorService.unsubscribeFromCreator(creatorId);
-    return creatorId;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : '구독 취소에 실패했습니다.';
-    return rejectWithValue(message);
-  }
-});
+// fetchCreatorPlatforms는 제거됨 - GET /creators/:id가 이미 platforms 포함
 
 const creatorSlice = createSlice({
   name: 'creator',
   initialState,
   reducers: {
-    setSelectedCreator: (state, action: PayloadAction<Creator | null>) => {
-      state.selectedCreator = action.payload;
-    },
-    setFilters: (state, action: PayloadAction<CreatorFilters>) => {
+    setFilters: (state, action: PayloadAction<CreatorSearchParams>) => {
       state.filters = { ...state.filters, ...action.payload };
-      state.pagination.currentPage = 1;
     },
-    setCurrentPage: (state, action: PayloadAction<number>) => {
-      state.pagination.currentPage = action.payload;
+    clearFilters: (state) => {
+      state.filters = {
+        page: 1,
+        limit: 30,
+      };
     },
     clearError: (state) => {
       state.error = null;
@@ -154,64 +91,36 @@ const creatorSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // 크리에이터 목록 조회
       .addCase(fetchCreators.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchCreators.fulfilled, (state, action) => {
         state.loading = false;
-        state.creators = action.payload.creators;
-        state.pagination = action.payload.pagination;
+        state.creators = action.payload.items;
+        state.pageInfo = action.payload.pageInfo;
       })
       .addCase(fetchCreators.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
-      .addCase(verifyCreator.pending, (state) => {
-        state.loading = true;
+
+      // 크리에이터 상세 조회
+      .addCase(fetchCreatorById.pending, (state) => {
+        state.detailLoading = true;
         state.error = null;
       })
-      .addCase(verifyCreator.fulfilled, (state) => {
-        state.loading = false;
+      .addCase(fetchCreatorById.fulfilled, (state, action) => {
+        state.detailLoading = false;
+        state.selectedCreator = action.payload;
       })
-      .addCase(verifyCreator.rejected, (state, action) => {
-        state.loading = false;
+      .addCase(fetchCreatorById.rejected, (state, action) => {
+        state.detailLoading = false;
         state.error = action.payload as string;
-      })
-      // 구독 액션 처리
-      .addCase(subscribeToCreator.pending, (state) => {
-        state.subscribing = true;
-        state.subscribeError = null;
-      })
-      .addCase(subscribeToCreator.fulfilled, (state, action) => {
-        state.subscribing = false;
-        const creator = state.creators.find((c) => c.id === action.payload);
-        if (creator) {
-          creator.isSubscribed = true;
-        }
-      })
-      .addCase(subscribeToCreator.rejected, (state, action) => {
-        state.subscribing = false;
-        state.subscribeError = action.payload as string;
-      })
-      // 구독 취소 액션 처리
-      .addCase(unsubscribeFromCreator.pending, (state) => {
-        state.subscribing = true;
-        state.subscribeError = null;
-      })
-      .addCase(unsubscribeFromCreator.fulfilled, (state, action) => {
-        state.subscribing = false;
-        const creator = state.creators.find((c) => c.id === action.payload);
-        if (creator) {
-          creator.isSubscribed = false;
-        }
-      })
-      .addCase(unsubscribeFromCreator.rejected, (state, action) => {
-        state.subscribing = false;
-        state.subscribeError = action.payload as string;
       });
   },
 });
 
-export const { setSelectedCreator, setFilters, setCurrentPage, clearError } = creatorSlice.actions;
+export const { setFilters, clearFilters, clearError } = creatorSlice.actions;
 export default creatorSlice.reducer;
