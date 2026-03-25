@@ -17,7 +17,7 @@ import type {
 class CreatorRegistrationService {
   /**
    * 신청 목록 조회
-   * my-pick-server API: GET /creator-applications
+   * mypick-server API: GET /creator-applications
    */
   async getRegistrations(params: RegistrationSearchParams = {}): Promise<RegistrationListResponse> {
     // 빈 값이나 undefined를 제외한 쿼리 파라미터 구성
@@ -46,7 +46,7 @@ class CreatorRegistrationService {
 
   /**
    * 신청 통계 조회
-   * my-pick-server API: GET /creator-applications/stats
+   * mypick-server API: GET /creator-applications/stats
    */
   async getRegistrationStats(): Promise<RegistrationStats> {
     const response = await pickApi.get<RegistrationStats>('/creator-registrations/stats');
@@ -55,7 +55,7 @@ class CreatorRegistrationService {
 
   /**
    * 신청 상세 조회
-   * my-pick-server API: GET /creator-applications/:id
+   * mypick-server API: GET /creator-applications/:id
    */
   async getRegistrationById(id: string): Promise<CreatorRegistration> {
     const response = await pickApi.get<CreatorRegistration>(`/creator-applications/${id}`);
@@ -64,7 +64,7 @@ class CreatorRegistrationService {
 
   /**
    * 신청 검토 - 승인/거부
-   * my-pick-server API: POST /creator-applications/:id/review
+   * mypick-server API: POST /creator-applications/:id/review
    */
   async reviewRegistration(
     id: string,

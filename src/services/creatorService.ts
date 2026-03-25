@@ -9,7 +9,7 @@ import type { CreatorSearchParams, CreatorListResponse, CreatorDetail } from '@/
 class CreatorService {
   /**
    * 크리에이터 목록 조회 (페이지네이션, 필터링, 정렬 지원)
-   * my-pick-server API: GET /creators
+   * mypick-server API: GET /creators
    */
   async getCreators(params: CreatorSearchParams = {}): Promise<CreatorListResponse> {
     // 빈 값이나 undefined를 제외한 쿼리 파라미터 구성
@@ -46,7 +46,7 @@ class CreatorService {
 
   /**
    * 크리에이터 상세 조회
-   * my-pick-server API: GET /creators/:id
+   * mypick-server API: GET /creators/:id
    */
   async getCreatorById(id: string): Promise<CreatorDetail> {
     const response = await pickApi.get<CreatorDetail>(`/creators/${id}`);

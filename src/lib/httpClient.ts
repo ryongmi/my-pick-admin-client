@@ -16,7 +16,7 @@ export type { PaginatedResult as PaginatedResponse } from '@krgeobuk/core/interf
 
 /**
  * 멀티 서버 설정
- * my-pick-admin-client는 auth-server와 my-pick-server를 사용합니다
+ * mypick-admin-client는 auth-server와 mypick-server를 사용합니다
  */
 const getEnvConfig = (): MultiServerConfig => ({
   auth: {
@@ -115,7 +115,7 @@ export const authApi = {
 };
 
 /**
- * MyPick Server API (my-pick-server:4000)
+ * MyPick Server API (mypick-server:4000)
  * 크리에이터, 콘텐츠, 플랫폼 관리 기능
  */
 export const pickApi = {

@@ -39,7 +39,7 @@ export interface ResumeSyncResponse {
 class SyncService {
   /**
    * 플랫폼 콘텐츠 수동 동기화 트리거 (증분 동기화)
-   * my-pick-server API: POST /content/sync/:platformId
+   * mypick-server API: POST /content/sync/:platformId
    *
    * @param platformId - 동기화할 플랫폼 ID
    * @returns 동기화 결과
@@ -51,7 +51,7 @@ class SyncService {
 
   /**
    * 플랫폼 전체 콘텐츠 동기화 트리거
-   * my-pick-server API: POST /content/sync/:platformId/full
+   * mypick-server API: POST /content/sync/:platformId/full
    *
    * @param platformId - 동기화할 플랫폼 ID
    * @returns 전체 동기화 결과
@@ -63,7 +63,7 @@ class SyncService {
 
   /**
    * 초기 동기화 재개
-   * my-pick-server API: POST /content/sync/:platformId/resume
+   * mypick-server API: POST /content/sync/:platformId/resume
    *
    * @param platformId - 재개할 플랫폼 ID
    * @returns 재개 결과
