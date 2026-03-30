@@ -1,10 +1,10 @@
 # CLAUDE.md - MyPick Admin Client
 
-이 파일은 my-pick-admin-client 작업 시 Claude Code의 가이드라인을 제공합니다.
+이 파일은 mypick-admin-client 작업 시 Claude Code의 가이드라인을 제공합니다.
 
 ## 프로젝트 개요
 
-my-pick-admin-client는 MyPick 플랫폼의 관리자 전용 인터페이스입니다. 크리에이터, 사용자, 콘텐츠, 플랫폼을 통합 관리할 수 있는 현대적이고 안전한 관리자 포탈을 제공합니다.
+mypick-admin-client는 MyPick 플랫폼의 관리자 전용 인터페이스입니다. 크리에이터, 사용자, 콘텐츠, 플랫폼을 통합 관리할 수 있는 현대적이고 안전한 관리자 포탈을 제공합니다.
 
 ### 기술 스택
 - **Next.js 15** - App Router 기반 React 프레임워크  
@@ -44,10 +44,10 @@ npm run lint:fix           # 자동 수정과 함께 린팅
 - **실시간 모니터링**: 시스템 현황 실시간 대시보드
 
 ### 서비스 통합 아키텍처
-my-pick-admin-client는 MyPick 마이크로서비스들의 관리 인터페이스입니다:
+mypick-admin-client는 MyPick 마이크로서비스들의 관리 인터페이스입니다:
 
 1. **auth-server (8000)** - 사용자 인증 및 사용자 관리
-2. **my-pick-server (4000)** - 크리에이터, 콘텐츠, 플랫폼 관리
+2. **mypick-server (4000)** - 크리에이터, 콘텐츠, 플랫폼 관리
 
 ### 관리자 인터페이스 구조
 - **대시보드** (`/`)
@@ -116,7 +116,7 @@ export const fetchUsers = createAsyncThunk<
 // src/lib/httpClient.ts
 class HttpClient {
   private authClient: AxiosInstance;  // auth-server
-  private pickClient: AxiosInstance;  // my-pick-server
+  private pickClient: AxiosInstance;  // mypick-server
 
   constructor() {
     this.authClient = axios.create({
